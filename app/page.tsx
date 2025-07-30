@@ -34,7 +34,7 @@ export default function Home() {
         status,
       }),
     });
-    if (status === "forgotten") {
+    if (status === "forgotten" || status === "idn") {
       setShowDetail(true);
     } else {
       fetchWord(); // 下一张卡片
