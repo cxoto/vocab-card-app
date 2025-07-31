@@ -32,12 +32,12 @@ export default function Home() {
   const handleMemory = async (status: "remembered" | "forgotten" | "idn") => {
     const word = words[currentIndex];
     if (!word) return;
+    setShowDetail(true);
     await fetch("https://vocab.xoto.cc/word/memory", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ word: word.word, status }),
     });
-    setShowDetail(true);
   };
 
   const nextWord = () => {
