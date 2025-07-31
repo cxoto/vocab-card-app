@@ -12,43 +12,70 @@ type Word = {
 };
 
 export default function Home() {
-  const [word, setWord] = useState<Word | null>(null);
+  const [words, setWords] = useState<Word[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [showDetail, setShowDetail] = useState(false);
 
-  const fetchWord = async () => {
-    const res = await fetch("https://vocab.xoto.cc/random-words?n=1");
+  // 触摸滑动事件变量
+  let touchStartX = 0;
+  let touchEndX = 0;
+
+  const fetchAllWords = async () => {
+    const res = await fetch("https://vocab.xoto.cc/random-words?n=100");
     const data = await res.json();
-    setWord(data[0]);
+    setWords(data);
+    setCurrentIndex(0);
     setShowDetail(false);
   };
 
   const handleMemory = async (status: "remembered" | "forgotten" | "idn") => {
+    const word = words[currentIndex];
     if (!word) return;
     await fetch("https://vocab.xoto.cc/word/memory", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        word: word.word,
-        status,
-      }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ word: word.word, status }),
     });
-    if (status === "forgotten" || status === "idn") {
-      setShowDetail(true);
-    } else {
-      fetchWord(); // 下一张卡片
+    setShowDetail(true); // 只展示释义，不切换单词
+  };
+
+  const nextWord = () => {
+    if (currentIndex < words.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+      setShowDetail(false);
     }
   };
 
+  const prevWord = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+      setShowDetail(false);
+    }
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX = e.changedTouches[0].screenX;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    touchEndX = e.changedTouches[0].screenX;
+    if (touchEndX < touchStartX - 50) nextWord(); // 左滑
+    if (touchEndX > touchStartX + 50) prevWord(); // 右滑
+  };
+
   useEffect(() => {
-    fetchWord();
+    fetchAllWords();
   }, []);
 
+  const word = words[currentIndex];
   if (!word) return <div className="p-4">Loading...</div>;
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4">
+    <div
+      className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4"
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
       <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md text-center">
         <h1 className="text-3xl font-bold">{word.word}</h1>
         <p className="text-gray-500 text-xl mb-4">{word.phonetic}</p>
@@ -78,6 +105,23 @@ export default function Home() {
             onClick={() => handleMemory("idn")}
           >
             模糊
+          </button>
+        </div>
+
+        <div className="flex justify-between mt-6">
+          <button
+            className="text-blue-600 underline"
+            onClick={prevWord}
+            disabled={currentIndex === 0}
+          >
+            上一个
+          </button>
+          <button
+            className="text-blue-600 underline"
+            onClick={nextWord}
+            disabled={currentIndex === words.length - 1}
+          >
+            下一个
           </button>
         </div>
       </div>
