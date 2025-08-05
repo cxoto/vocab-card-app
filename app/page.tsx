@@ -21,6 +21,12 @@ export default function Home() {
   let touchStartX = 0;
   let touchEndX = 0;
 
+  const speakWord = (text: string) => {
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "en-US"; // 可根据需要改为 "en-GB" 等
+    window.speechSynthesis.speak(utterance);
+  };
+
   const fetchAllWords = async () => {
     const res = await fetch("https://vocab.xoto.cc/random-words?n=100");
     const data = await res.json();
@@ -100,7 +106,18 @@ export default function Home() {
             className="w-full absolute top-0 left-0"
           >
             <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
-              <h1 className="text-3xl font-bold">{word.word}</h1>
+              <div className="flex justify-center items-center space-x-2">
+                <h1 className="text-3xl font-bold">{word.word}</h1>
+                <button
+                  onClick={() => speakWord(word.word)}
+                  className="text-blue-500 hover:text-blue-700"
+                  aria-label="Play pronunciation"
+                  title="朗读单词"
+                >
+                  🔊
+                </button>
+              </div>
+
               <p className="text-gray-500 text-xl mb-4">{word.phonetic}</p>
 
               {showDetail && (
