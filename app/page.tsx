@@ -22,8 +22,18 @@ export default function Home() {
   let touchEndX = 0;
 
   const speakWord = (text: string) => {
+    speechSynthesis.cancel(); // 避免重叠播放
+
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = "en-US"; // 可根据需要改为 "en-GB" 等
+    utterance.lang = "en-US";
+    utterance.rate = 0.75;
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
+
+    const voices = speechSynthesis.getVoices();
+    const enVoice = voices.find(v => v.lang === "en-US" || v.lang.startsWith("en"));
+    if (enVoice) utterance.voice = enVoice;
+
     window.speechSynthesis.speak(utterance);
   };
 
